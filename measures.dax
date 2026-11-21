@@ -1,0 +1,83 @@
+-- PROJECT 02 | DAX measures for Power BI
+-- Model: DimDate[Date] 1:* FactBusinessPerformance[month]
+--        DimCourse[Course] 1:* FactBusinessPerformance[course]
+--        DimChannel[Channel] 1:* FactBusinessPerformance[channel]
+--        DimRegion[Region] 1:* FactBusinessPerformance[region]
+--        DimDate[Date] 1:* FactTeamOperations[month]
+--        DimTeam[Team] 1:* FactTeamOperations[team]
+-- Mark DimDate as the Date table. Use single-direction, one-to-many relationships.
+
+Total Revenue = SUM(FactBusinessPerformance[revenue_usd])
+Total Marketing Spend = SUM(FactBusinessPerformance[marketing_spend_usd])
+Total Leads = SUM(FactBusinessPerformance[leads])
+Total Enrollments = SUM(FactBusinessPerformance[enrollments])
+Total Completions = SUM(FactBusinessPerformance[completions])
+Total Refunds = SUM(FactBusinessPerformance[refunds])
+Total Support Tickets = SUM(FactBusinessPerformance[support_tickets])
+
+Lead-to-Enrolment Rate =
+DIVIDE([Total Enrollments], [Total Leads], 0)
+
+Completion Rate =
+DIVIDE([Total Completions], [Total Enrollments], 0)
+
+Marketing Cost per Enrolment =
+DIVIDE([Total Marketing Spend], [Total Enrollments], 0)
+
+Revenue per Enrolment =
+DIVIDE([Total Revenue], [Total Enrollments], 0)
+
+Refund Rate =
+DIVIDE([Total Refunds], [Total Enrollments], 0)
+
+Revenue MoM Change % =
+VAR PreviousMonth =
+    CALCULATE([Total Revenue], DATEADD(DimDate[Date], -1, MONTH))
+RETURN DIVIDE([Total Revenue] - PreviousMonth, PreviousMonth, 0)
+
+Revenue YTD =
+TOTALYTD([Total Revenue], DimDate[Date])
+
+Revenue Previous Year =
+CALCULATE([Total Revenue], SAMEPERIODLASTYEAR(DimDate[Date]))
+
+Revenue YoY Change % =
+DIVIDE([Total Revenue] - [Revenue Previous Year], [Revenue Previous Year], 0)
+
+Enrollment Target =
+SUM(FactBusinessPerformance[enrollment_target])
+
+Enrollment Target Attainment =
+DIVIDE([Total Enrollments], [Enrollment Target], 0)
+
+Average Resolution Hours =
+AVERAGE(FactBusinessPerformance[avg_resolution_hours])
+
+Planned Projects =
+SUM(FactTeamOperations[planned_projects])
+
+Completed Projects =
+SUM(FactTeamOperations[completed_projects])
+
+Project Completion Rate =
+DIVIDE([Completed Projects], [Planned Projects], 0)
+
+Overdue Projects =
+SUM(FactTeamOperations[overdue_projects])
+
+Budget =
+SUM(FactTeamOperations[budget_usd])
+
+Actual Cost =
+SUM(FactTeamOperations[actual_cost_usd])
+
+Budget Variance =
+[Actual Cost] - [Budget]
+
+Budget Variance % =
+DIVIDE([Budget Variance], [Budget], 0)
+
+-- Suggested conditional formatting:
+-- Completion Rate: red < 60%, amber 60%-75%, green > 75%
+-- Enrollment Target Attainment: red < 90%, amber 90%-100%, green > 100%
+-- Budget Variance %: red > 5%, amber 0%-5%, green <= 0%
